@@ -28,7 +28,7 @@ Animals are represented by the `Animal` class. They move around the terrarium an
 ### Rocks
 Rocks are represented by the `Rock` class. They do not move and have no interactions with other objects in the terrarium.
 
-## Movements
+## Movements 🏃
 For the movements, the code uses different methods for each type of object. For instance, the Ant moves in the direction of its velocity components, while the Gecko moves randomly in one of the four cardinal directions. Additionally, objects can bounce off the walls of the terrarium to avoid going out of bounds.
 
 The movement of objects is important because it allows them to interact with other objects in the ecosystem. For example, Ants can eat Plants, and Ladybugs can eat Insects and other Animals. In addition, Animals and Insects can reproduce with other objects of the same type, which leads to the creation of new offspring. These interactions make the simulation dynamic and exciting to watch.

@@ -41,10 +41,10 @@ class Plant(Object):
         pass
     
     def reproduce(self, other):
-        if terrarium.humidity > 20 and random.random() < 0.01:
+        if terrarium.humidity > 20 and random.random() < 10:
             baby = Plant(self.x, self.y, self.size)
             terrarium.add_object(baby)
-            print(f"A new plant as ({self.x}, {self.y}) has grown!")
+            print(f"A new plant at ({self.x}, {self.y}) has grown!")
             
     
 class Insect(Object):
@@ -89,7 +89,11 @@ class Ant(Insect):
         super().__init__(x, y, size)
     
     def move(self):
-        # Ants move in the direction of their velocity components
+        self.vx += random.uniform(-0.1, 0.1)
+        self.vy += random.uniform(-0.1, 0.1)
+        self.vx = max(-1, min(self.vx, 1))
+        self.vy = max(-1, min(self.vy, 1))
+        
         self.x = max(0, min(self.x + self.vx, terrarium.width - 1))
         self.y = max(0, min(self.y + self.vy, terrarium.height - 1))
     
@@ -97,18 +101,22 @@ class Ant(Insect):
         if isinstance(other, Plant):
             self.energy += other.size
             other.die()
-        elif ( isinstance(other, Insect)  or isinstance(other, Animal) ) and other.size < self.size:
+        elif (isinstance(other, Insect) or isinstance(other, Animal)) and other.size < self.size:
             self.energy += other.energy
             other.die()
-
-        print(f"Ant at ({self.x}, {self.y}) eat a {other.__class__.__name__}")
+        
+        print(f"Ant at ({self.x}, {self.y}) ate a {other.__class__.__name__}")
 
 class Ladybug(Insect):
     def __init__(self, x, y, size):
         super().__init__(x, y, size)
     
     def move(self):
-        # Ladybugs move in the direction of their velocity components
+        self.vx += random.uniform(-0.1, 0.1)
+        self.vy += random.uniform(-0.1, 0.1)
+        self.vx = max(-1, min(self.vx, 1))
+        self.vy = max(-1, min(self.vy, 1))
+        
         self.x = max(0, min(self.x + self.vx, terrarium.width - 1))
         self.y = max(0, min(self.y + self.vy, terrarium.height - 1))
     
@@ -122,8 +130,8 @@ class Ladybug(Insect):
         elif isinstance(other, Animal) and other.size > self.size:
             self.energy += other.energy
             other.die()
-
-        print(f"Ladybug at ({self.x}, {self.y}) eat a {other.__class__.__name__}")
+        
+        print(f"Ladybug at ({self.x}, {self.y}) ate a {other.__class__.__name__}")
             
 
 class Animal(Object):
@@ -131,12 +139,16 @@ class Animal(Object):
         super().__init__(x, y, size)
         self.vx = random.uniform(-1, 1)
         self.vy = random.uniform(-1, 1)
-        self.gestation_period = 10 # the number of simulation iterations needed for an animal to give birth
-        self.pregnant = False # whether the animal is pregnant or not
-        self.pregnancy_time = 0 # the number of simulation iterations since the animal got pregnant
+        self.gestation_period = 10
+        self.pregnant = False
+        self.pregnancy_time = 0
     
     def move(self):
-        # Animals move in the direction of their velocity components
+        self.vx += random.uniform(-0.1, 0.1)
+        self.vy += random.uniform(-0.1, 0.1)
+        self.vx = max(-1, min(self.vx, 1))
+        self.vy = max(-1, min(self.vy, 1))
+        
         self.x = max(0, min(self.x + self.vx, terrarium.width - 1))
         self.y = max(0, min(self.y + self.vy, terrarium.height - 1))
 
@@ -148,28 +160,27 @@ class Animal(Object):
             self.energy += other.energy
             other.die()
 
-
     def reproduce(self, other):
-        if isinstance(other, Animal) and other.size == self.size:
+        if isinstance(other, Animal) and isinstance(other, self.__class__) and other.size == self.size:
             if self.pregnant:
                 self.pregnancy_time += 1
                 if self.pregnancy_time >= self.gestation_period:
-                    baby = Animal(self.x, self.y, self.size)
+                    baby = self.__class__(self.x, self.y, self.size)
                     terrarium.add_object(baby)
-                    print(f"Animal at ({self.x}, {self.y}) has given birth!")
+                    print(f"{self.__class__.__name__} at ({self.x}, {self.y}) has given birth!")
                     self.pregnant = False
                     self.pregnancy_time = 0
             else:
                 self.pregnant = True
                 self.pregnancy_time = 1
-                print(f"Animal at ({self.x}, {self.y}) is pregnant!")
+                print(f"{self.__class__.__name__} at ({self.x}, {self.y}) is pregnant!")
+
 
 class Gecko(Animal):
     def __init__(self, x, y, size):
         super().__init__(x, y, size)
 
     def move(self):
-        # Geckos move randomly in one of the four cardinal directions
         dx = random.randint(-1, 1)
         dy = random.randint(-1, 1)
         self.x = max(0, min(self.x + dx, terrarium.width - 1))
@@ -179,11 +190,11 @@ class Gecko(Animal):
         if isinstance(other, Plant):
             self.energy += other.size
             other.die()
-            print(f"Gecko at ({self.x}, {self.y}) eat a {other.__class__.__name__}")
+            print(f"Gecko at ({self.x}, {self.y}) ate a {other.__class__.__name__}")
         elif isinstance(other, Insect) or isinstance(other, Animal) and other.size < self.size and self.energy < 90:
             self.energy += other.energy
             other.die()
-            print(f"Gecko at ({self.x}, {self.y}) eat a {other.__class__.__name__}")
+            print(f"Gecko at ({self.x}, {self.y}) ate a {other.__class__.__name__}")
 
     def reproduce(self, other):
         if isinstance(other, Gecko) and other.size == self.size:
@@ -314,26 +325,22 @@ class Terrarium:
                         obj.die()
                         break          
                 
-            # Check for starvation and death
             if isinstance(obj, Animal):
-                obj.energy -= 1 # Decrease energy by 1 unit in each simulation iteration
+                obj.energy -= 1
                 if obj.energy <= 0:
                     obj.die()
             elif isinstance(obj, Plant) and random.random() < 0.01:
-                # 1% chance for a plant to die naturally
                 obj.die()
             elif isinstance(obj, Insect):
-                obj.energy -= 1 # Decrease energy by 1 unit in each simulation iteration
+                obj.energy -= 1
                 if obj.energy <= 0:
                     obj.die()
                     
-        # Update the object counts
         self.num_plants = sum(isinstance(obj, Plant) for obj in self.objects)
         self.num_insects = sum(isinstance(obj, Insect) for obj in self.objects)
         self.num_animals = sum(isinstance(obj, Animal) for obj in self.objects)
         self.num_rocks = sum(isinstance(obj, Rock) for obj in self.objects)
 
-        # Implement random weather events
         if random.random() < 0.01:
             self.temperature += random.randint(-1, 1)
             self.humidity += random.randint(-1, 1)
@@ -377,18 +384,17 @@ for i in range(3):
     rock = Rock(x, y, size)
     terrarium.add_object(rock)
 
-for i in range(3):
+for i in range(50):
     x = random.randint(0, terrarium.width-1)
     y = random.randint(0, terrarium.height-1)
     size = 3
     gecko = Gecko(x, y, size)
     terrarium.add_object(gecko)
 
-# Define a function to run the simulation loop
 def run_simulation():
     while True:
         terrarium.simulate()
-        time.sleep(2)
+        time.sleep(1.0)
 
 # Start the simulation loop in a separate thread
 thread = threading.Thread(target=run_simulation)
